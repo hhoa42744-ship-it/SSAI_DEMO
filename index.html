@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo Chèn Quảng Cáo SSAI (Post-roll)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.1/dash.all.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f172a; color: white; text-align: center; padding-top: 20px; }
+        .player-container { width: 640px; margin: 0 auto; position: relative; }
+        video { width: 100%; height: 360px; background: #000; border-radius: 8px; }
+        #status { margin-top: 15px; font-weight: bold; font-size: 1.1rem; color: #38bdf8; }
+        #adTag { position: absolute; top: 10px; left: 10px; background: red; color: white; padding: 4px 8px; font-weight: bold; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+
+<h2>Demo Chèn Quảng Cáo SSAI (Phát sau Video)</h2>
+
+<div class="player-container">
+    <div id="adTag">QUẢNG CÁO</div>
+    <video id="videoPlayer" controls autoplay muted></video>
+</div>
+
+<div id="status">Đang kết nối tới Server...</div>
+
+<script>
+    const manifestUrl = "http://localhost:3000/manifest.mpd";
+
+    window.onload = function() {
+        const video = document.getElementById("videoPlayer");
+        const status = document.getElementById("status");
+        const adTag = document.getElementById("adTag");
+
+        const player = dashjs.MediaPlayer().create();
+        
+        // Bật cấu hình hỗ trợ Multi-Period mượt mà
+        player.updateSettings({
+            'streaming': {
+                'buffer': {
+                    'fastSwitchEnabled': true
+                }
+            }
+        });
+
+        player.initialize(video, manifestUrl, true);
+
+        // Lắng nghe sự kiện chuyển đổi giữa Video chính và Quảng cáo
+        player.on(dashjs.MediaPlayer.events.PERIOD_SWITCH_COMPLETED, function (e) {
+            if (e.toStreamInfo.id.includes("ad")) {
+                adTag.style.display = "block";
+                status.innerText = "Trạng thái: Đang phát Quảng cáo (Post-roll)...";
+                status.style.color = "#f87171";
+            } else {
+                adTag.style.display = "none";
+                status.innerText = "Trạng thái: Đang phát Video chính...";
+                status.style.color = "#4ade80";
+            }
+        });
+
+        player.on(dashjs.MediaPlayer.events.ERROR, function(e) {
+            status.innerText = "Lỗi tải Video! Hãy kiểm tra lại Server.";
+            status.style.color = "#ef4444";
+        });
+    };
+</script>
+
+</body>
+</html>
